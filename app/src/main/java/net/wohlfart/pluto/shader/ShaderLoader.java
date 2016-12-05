@@ -12,7 +12,11 @@ import static android.content.ContentValues.TAG;
 
 
 public class ShaderLoader {
+
+    // subfolder in the asset dir
     private static final String BASE_PATH = "shader/";
+
+    // file endings
     private static final String VERTEX_POSTFIX = ".vert";
     private static final String FRAGMENT_POSTFIX = ".frag";
 
