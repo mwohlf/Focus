@@ -13,7 +13,7 @@ class CoreRenderView extends GLSurfaceView {
 
     public CoreRenderView(Context context){
         super(context);
-        coreRenderer = new CoreRenderer();
+        coreRenderer = new CoreRenderer(context);
         setEGLContextClientVersion(GL_VERSION);
         setRenderer(coreRenderer);
     }

@@ -1,5 +1,6 @@
 package net.wohlfart.pluto.shader;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
 
@@ -11,16 +12,36 @@ import static android.content.ContentValues.TAG;
 
 
 public class ShaderLoader {
+    private static final String BASE_PATH = "shader/";
+    private static final String VERTEX_POSTFIX = ".vert";
+    private static final String FRAGMENT_POSTFIX = ".frag";
 
     private final String name;
+    private final Context context;
 
-    public ShaderLoader(String name) {
+    public ShaderLoader(String name, Context context) {
         this.name = name;
+        this.context = context;
     }
 
     public int load() throws IOException {
-        String vertexSource = readFully(getClass().getResourceAsStream(name + ".vert")).toString();
-        String fragmentSource = readFully(getClass().getResourceAsStream(name + ".frag")).toString();
+        InputStream inputStream;
+        String vertexSource, fragmentSource;
+
+        inputStream = context.getResources().getAssets().open(BASE_PATH + name + VERTEX_POSTFIX);
+        try {
+            vertexSource = readFully(inputStream).toString();
+        } finally {
+            inputStream.close();
+        }
+
+        inputStream = context.getResources().getAssets().open(BASE_PATH + name + FRAGMENT_POSTFIX);
+        try {
+            fragmentSource = readFully(inputStream).toString();
+        } finally {
+            inputStream.close();
+        }
+
         return createProgram(vertexSource, fragmentSource);
     }
 
