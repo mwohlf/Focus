@@ -13,6 +13,8 @@ import static android.content.ContentValues.TAG;
 
 public class ShaderLoader {
 
+    private static final int INVALID_PROGRAM_ID = 0; // todo: cleanup
+
     // subfolder in the asset dir
     private static final String BASE_PATH = "shader/";
 
@@ -20,15 +22,13 @@ public class ShaderLoader {
     private static final String VERTEX_POSTFIX = ".vert";
     private static final String FRAGMENT_POSTFIX = ".frag";
 
-    private final String name;
     private final Context context;
 
-    public ShaderLoader(String name, Context context) {
-        this.name = name;
+    public ShaderLoader(Context context) {
         this.context = context;
     }
 
-    public int load() throws IOException {
+    public ShaderProgram load(String name) throws IOException {
         InputStream inputStream;
         String vertexSource, fragmentSource;
 
@@ -46,7 +46,7 @@ public class ShaderLoader {
             inputStream.close();
         }
 
-        return createProgram(vertexSource, fragmentSource);
+        return new ShaderProgram(createProgram(vertexSource, fragmentSource), name);
     }
 
     private ByteArrayOutputStream readFully(InputStream inputStream) throws IOException {
@@ -79,6 +79,7 @@ public class ShaderLoader {
                 program = 0;
             }
         }
+        GLES20.glUseProgram(0);
         return program;
     }
 
