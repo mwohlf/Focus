@@ -13,6 +13,10 @@ public class DefaultRenderable implements IRenderable {
 
     ShaderProgram shaderProgram;
 
+    public ShaderProgram getShaderProgram() {
+        return shaderProgram;
+    }
+
     public void setShaderProgram(ShaderProgram shaderProgram) {
         this.shaderProgram = shaderProgram;
     }

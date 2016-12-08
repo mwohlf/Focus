@@ -7,6 +7,8 @@ import android.opengl.Matrix;
 import android.util.Log;
 
 import net.wohlfart.pluto.render.DefaultRenderable;
+import net.wohlfart.pluto.render.IRenderable;
+import net.wohlfart.pluto.render.Triangle;
 import net.wohlfart.pluto.shader.ShaderLoader;
 import net.wohlfart.pluto.shader.ShaderProgram;
 
@@ -22,11 +24,9 @@ import javax.microedition.khronos.opengles.GL10;
 public class CoreRenderer implements GLSurfaceView.Renderer {
 
     private final Context context;
+
     private DefaultRenderable renderable;
-    private float[] vertices;
-    private short[] indices;
-    private FloatBuffer vertexBuffer;
-    private ShortBuffer drawListBuffer;
+
     private float[] mtrxProjection = new float[16];
     private float[] mtrxView = new float[16];
     private float[] mtrxProjectionAndView = new float[16];
@@ -43,23 +43,19 @@ public class CoreRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceCreated(GL10 glUnused, EGLConfig config) {
         Log.i(Focus.TAG, "onSurfaceCreated, thread is " + Thread.currentThread());
 
-        // Create the triangle
-        setupTriangle();
-
         // Set the background frame color
         GLES20.glClearColor(0.1f, 0.0f, 0.0f, 1.0f);
 
+        renderable = new Triangle();
 
         try {
             shader = new ShaderLoader(context).load("plain");
-            renderable = new DefaultRenderable();
+            renderable = new Triangle();
             renderable.setShaderProgram(shader);
             Log.i(Focus.TAG, "shader found, id: " + shader);
         } catch (IOException ex) {
             Log.e(Focus.TAG, "error creating shader", ex);
         }
-
-
 
     }
 
@@ -69,7 +65,6 @@ public class CoreRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 glUnused) {
         // Log.i(Focus.TAG, "onDrawFrame, thread is " + Thread.currentThread());
 
-        renderable.render();
         // Redraw background color
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         //muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
@@ -81,16 +76,7 @@ public class CoreRenderer implements GLSurfaceView.Renderer {
         // clear Screen and Depth Buffer, we have set the clear color as black.
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        // get handle to vertex shader's vPosition member
-        int mPositionHandle = GLES20.glGetAttribLocation(shader.handle(), "vPosition");
 
-        // Enable generic vertex attribute array
-        GLES20.glEnableVertexAttribArray(mPositionHandle);
-
-        // Prepare the triangle coordinate data
-        GLES20.glVertexAttribPointer(mPositionHandle, 3,
-                GLES20.GL_FLOAT, false,
-                0, vertexBuffer);
 
         // Get handle to shape's transformation matrix
         int mtrxhandle = GLES20.glGetUniformLocation(shader.handle(), "uMVPMatrix");
@@ -98,12 +84,7 @@ public class CoreRenderer implements GLSurfaceView.Renderer {
         // Apply the projection and view transformation
         GLES20.glUniformMatrix4fv(mtrxhandle, 1, false, m, 0);
 
-        // Draw the triangle
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, indices.length,
-                GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
-
-        // Disable vertex array
-        GLES20.glDisableVertexAttribArray(mPositionHandle);
+        renderable.render();
 
     }
 
@@ -136,29 +117,4 @@ public class CoreRenderer implements GLSurfaceView.Renderer {
     }
 
 
-    public void setupTriangle() {
-        // We have to create the vertices of our triangle.
-        vertices = new float[]
-                {10.0f, 400f, 0.0f,
-                        10.0f, 100f, 0.0f,
-                        400f, 400f, 0.0f,
-                };
-
-        indices = new short[] {0, 1, 2}; // The order of vertexrendering.
-
-        // The vertex buffer.
-        ByteBuffer bb = ByteBuffer.allocateDirect(vertices.length * 4);
-        bb.order(ByteOrder.nativeOrder());
-        vertexBuffer = bb.asFloatBuffer();
-        vertexBuffer.put(vertices);
-        vertexBuffer.position(0);
-
-        // initialize byte buffer for the draw list
-        ByteBuffer dlb = ByteBuffer.allocateDirect(indices.length * 2);
-        dlb.order(ByteOrder.nativeOrder());
-        drawListBuffer = dlb.asShortBuffer();
-        drawListBuffer.put(indices);
-        drawListBuffer.position(0);
-
-    }
 }
