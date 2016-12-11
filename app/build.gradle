@@ -18,7 +18,8 @@ android {
         }
     }
     dexOptions {
-        incremental false
+        // deprecated
+        // incremental false
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
