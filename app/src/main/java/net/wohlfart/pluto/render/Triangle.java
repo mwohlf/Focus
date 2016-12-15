@@ -1,7 +1,10 @@
 package net.wohlfart.pluto.render;
 
 import android.opengl.GLES20;
+import android.opengl.Matrix;
+import android.util.Log;
 
+import net.wohlfart.pluto.Focus;
 import net.wohlfart.pluto.shader.ShaderProgram;
 
 import java.nio.ByteBuffer;
@@ -9,11 +12,17 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-/**
- * Created by michael on 08.12.16.
- */
 
-public class Triangle extends DefaultRenderable {
+/**
+ * the default IRenderable implementation consists of:
+ * - exactly one ShaderProgram
+ * - zero or more uniforms
+ * - zero or more attribute
+ * - zero or more meshes
+ */
+public class Triangle implements IRenderable {
+
+    private ShaderProgram shaderProgram;
 
     private float[] vertices;
     private short[] indices;
@@ -21,18 +30,60 @@ public class Triangle extends DefaultRenderable {
     private FloatBuffer vertexBuffer;
     private ShortBuffer drawListBuffer;
 
+    private float[] mtrxProjection = new float[16];
+    private float[] mtrxView = new float[16];
+    private float[] mtrxProjectionAndView = new float[16];
+
+    int width;
+    int height;
+
+
     public Triangle() {
         setupTriangle();
     }
 
+    public void setShaderProgram(ShaderProgram shaderProgram) {
+        this.shaderProgram = shaderProgram;
+    }
+
+    public void setDimension(int width, int height) {
+        Log.i(Focus.TAG, "<setDimension> width: " + width + " heigth: " + height);
+        this.width = width;
+        this.height = height;
+    }
+
     @Override
     public void render() {
-        super.render();
+        shaderProgram.use();
+        GLES20.glViewport(0, 0, width, height);
 
-        ShaderProgram shader = getShaderProgram();
+        // Clear our matrices
+        for(int i=0;i<16;i++) {
+            mtrxProjection[i] = 0.0f;
+            mtrxView[i] = 0.0f;
+            mtrxProjectionAndView[i] = 0.0f;
+        }
+
+        // Setup our screen width and height for normal sprite translation.
+        Matrix.orthoM(mtrxProjection, 0, 0f, width, 0.0f, height, 0, 50);
+
+        // Set the camera position (View matrix)
+        Matrix.setLookAtM(mtrxView, 0, 0f, 0f, 1f,
+                                       0f, 0f, 0f,
+                                       0f, 1.0f, 0.0f);
+
+        // Calculate the projection and view transformation
+        Matrix.multiplyMM(mtrxProjectionAndView, 0, mtrxProjection, 0, mtrxView, 0);
+
+        // Get handle to shape's transformation matrix
+        int mtrxhandle = GLES20.glGetUniformLocation(shaderProgram.handle(), "uMVPMatrix");
+
+        // Apply the projection and view transformation
+        GLES20.glUniformMatrix4fv(mtrxhandle, 1, false, mtrxProjectionAndView, 0);
+
 
         // get handle to vertex shader's vPosition member
-        int mPositionHandle = GLES20.glGetAttribLocation(shader.handle(), "vPosition");
+        int mPositionHandle = GLES20.glGetAttribLocation(shaderProgram.handle(), "vPosition");
 
         // Enable generic vertex attribute array
         GLES20.glEnableVertexAttribArray(mPositionHandle);

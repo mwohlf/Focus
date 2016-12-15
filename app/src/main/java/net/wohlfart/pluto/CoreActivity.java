@@ -11,11 +11,15 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 
+import net.wohlfart.pluto.asset.ResourceManager;
+
 public class CoreActivity extends Activity {
 
     private static final int GL_VERSION = 2;
     private CoreRenderView coreRenderView;
     private CoreRenderer coreRenderer;
+
+    private ResourceManager resourceManager;
 
     // see: http://androidblog.reindustries.com/opengl-es-2-0-2d-shaders-series-001-basic-shaders/
 
@@ -53,6 +57,8 @@ public class CoreActivity extends Activity {
         // Render the view only when there is a change in the drawing data
         coreRenderView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
+        resourceManager = new ResourceManager(coreRenderView, this);
+
         // Attach our surfaceview to our relative layout from our main layout.
         RelativeLayout.LayoutParams glParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
         layout.addView(coreRenderView, glParams);
@@ -60,6 +66,8 @@ public class CoreActivity extends Activity {
 
     @Override
     protected void onResume() {
+        Log.i(Focus.TAG, "onResume");
+
         // The activity must call the GL surface view's onResume() on activity onResume().
         super.onResume();
         coreRenderView.onResume();
@@ -67,6 +75,8 @@ public class CoreActivity extends Activity {
 
     @Override
     protected void onPause() {
+        Log.i(Focus.TAG, "onPause");
+
         // The activity must call the GL surface view's onPause() on activity onPause().
         super.onPause();
         coreRenderView.onPause();
