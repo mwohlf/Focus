@@ -30,9 +30,9 @@ public class Triangle implements IRenderable {
     private FloatBuffer vertexBuffer;
     private ShortBuffer drawListBuffer;
 
-    private float[] mtrxProjection = new float[16];
-    private float[] mtrxView = new float[16];
-    private float[] mtrxProjectionAndView = new float[16];
+    private float[] projectionMatrix = new float[16];
+    private float[] viewMatrix = new float[16];
+    private float[] modelMatrix = new float[16];
 
     int width;
     int height;
@@ -59,35 +59,28 @@ public class Triangle implements IRenderable {
 
         // Clear our matrices
         for(int i=0;i<16;i++) {
-            mtrxProjection[i] = 0.0f;
-            mtrxView[i] = 0.0f;
-            mtrxProjectionAndView[i] = 0.0f;
+            projectionMatrix[i] = 0.0f;
+            viewMatrix[i] = 0.0f;
+            modelMatrix[i] = 0.0f;
         }
 
-        // Setup our screen width and height for normal sprite translation.
-        Matrix.orthoM(mtrxProjection, 0, 0f, width, 0.0f, height, 0, 50);
+        int projectionMatrixHandle = GLES20.glGetUniformLocation(shaderProgram.handle(), ShaderProgram.PROJECTION_MATRIX);
+        Matrix.orthoM(projectionMatrix, 0, 0f, width, 0.0f, height, 0, 50);
+        GLES20.glUniformMatrix4fv(projectionMatrixHandle, 1, false, projectionMatrix, 0);
 
-        // Set the camera position (View matrix)
-        Matrix.setLookAtM(mtrxView, 0, 0f, 0f, 1f,
-                                       0f, 0f, 0f,
-                                       0f, 1.0f, 0.0f);
+        int viewMatrixHandle = GLES20.glGetUniformLocation(shaderProgram.handle(), ShaderProgram.VIEW_MATRIX);
+        Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        GLES20.glUniformMatrix4fv(viewMatrixHandle, 1, false, viewMatrix, 0);
 
-        // Calculate the projection and view transformation
-        Matrix.multiplyMM(mtrxProjectionAndView, 0, mtrxProjection, 0, mtrxView, 0);
-
-        // Get handle to shape's transformation matrix
-        int mtrxhandle = GLES20.glGetUniformLocation(shaderProgram.handle(), "uMVPMatrix");
-
-        // Apply the projection and view transformation
-        GLES20.glUniformMatrix4fv(mtrxhandle, 1, false, mtrxProjectionAndView, 0);
+        int modelMatrixHandle = GLES20.glGetUniformLocation(shaderProgram.handle(), ShaderProgram.MODEL_MATRIX);
+        Matrix.setIdentityM(modelMatrix, 0);
+        GLES20.glUniformMatrix4fv(modelMatrixHandle, 1, false, modelMatrix, 0);
 
 
         // get handle to vertex shader's vPosition member
-        int mPositionHandle = GLES20.glGetAttribLocation(shaderProgram.handle(), "vPosition");
-
+        int mPositionHandle = GLES20.glGetAttribLocation(shaderProgram.handle(), ShaderProgram.POSITION_ATTRIBUTE);
         // Enable generic vertex attribute array
         GLES20.glEnableVertexAttribArray(mPositionHandle);
-
         // Prepare the triangle coordinate data
         GLES20.glVertexAttribPointer(mPositionHandle, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
 
