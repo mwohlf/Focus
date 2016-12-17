@@ -4,9 +4,13 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import com.google.common.base.Function;
+
 import net.wohlfart.pluto.Focus;
 import net.wohlfart.pluto.shader.ShaderProgram;
+import net.wohlfart.pluto.shader.ShaderUniform;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -34,8 +38,10 @@ public class Triangle implements IRenderable {
     private float[] viewMatrix = new float[16];
     private float[] modelMatrix = new float[16];
 
-    int width;
-    int height;
+    private int width;
+    private int height;
+
+    private Mesh mesh;
 
 
     public Triangle() {
@@ -44,6 +50,10 @@ public class Triangle implements IRenderable {
 
     public void setShaderProgram(ShaderProgram shaderProgram) {
         this.shaderProgram = shaderProgram;
+
+        this.shaderProgram.attach(ShaderUniform.PROJECTION_MATRIX);
+        this.shaderProgram.attach(ShaderUniform.VIEW_MATRIX);
+        this.shaderProgram.attach(ShaderUniform.MODEL_MATRIX);
     }
 
     public void setDimension(int width, int height) {
@@ -64,17 +74,14 @@ public class Triangle implements IRenderable {
             modelMatrix[i] = 0.0f;
         }
 
-        int projectionMatrixHandle = GLES20.glGetUniformLocation(shaderProgram.handle(), ShaderProgram.PROJECTION_MATRIX);
         Matrix.orthoM(projectionMatrix, 0, 0f, width, 0.0f, height, 0, 50);
-        GLES20.glUniformMatrix4fv(projectionMatrixHandle, 1, false, projectionMatrix, 0);
+        shaderProgram.setMatrix(ShaderUniform.PROJECTION_MATRIX, projectionMatrix);
 
-        int viewMatrixHandle = GLES20.glGetUniformLocation(shaderProgram.handle(), ShaderProgram.VIEW_MATRIX);
         Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
-        GLES20.glUniformMatrix4fv(viewMatrixHandle, 1, false, viewMatrix, 0);
+        shaderProgram.setMatrix(ShaderUniform.VIEW_MATRIX, viewMatrix);
 
-        int modelMatrixHandle = GLES20.glGetUniformLocation(shaderProgram.handle(), ShaderProgram.MODEL_MATRIX);
         Matrix.setIdentityM(modelMatrix, 0);
-        GLES20.glUniformMatrix4fv(modelMatrixHandle, 1, false, modelMatrix, 0);
+        shaderProgram.setMatrix(ShaderUniform.MODEL_MATRIX, modelMatrix);
 
 
         // get handle to vertex shader's vPosition member
@@ -94,9 +101,21 @@ public class Triangle implements IRenderable {
     }
 
     private void setupTriangle() {
+
+        mesh = new MeshBuilder()
+                .add(10.0f, 400f, 0.0f)
+                .add(10.0f, 100f, 0.0f)
+                .add(400f, 400f, 0.0f)
+                .triangles()
+                .triangle(0, 1, 2)
+                .build();
+
+
+
         // We have to create the vertices of our triangle.
         vertices = new float[]
-                {10.0f, 400f, 0.0f,
+                {
+                        10.0f, 400f, 0.0f,
                         10.0f, 100f, 0.0f,
                         400f, 400f, 0.0f,
                 };

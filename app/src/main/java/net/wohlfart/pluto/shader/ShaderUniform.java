@@ -1,25 +1,20 @@
 package net.wohlfart.pluto.shader;
 
 
-import android.opengl.GLES20;
+public enum ShaderUniform {
+    MODEL_VIEW_PROJECTION_MATRIX(ShaderProgram.MODEL_VIEW_PROJECTION_MATRIX),
+    MODEL_MATRIX(ShaderProgram.MODEL_MATRIX),
+    VIEW_MATRIX(ShaderProgram.VIEW_MATRIX),
+    PROJECTION_MATRIX(ShaderProgram.PROJECTION_MATRIX);
 
-import static android.R.attr.handle;
+    private final String uniformName;
 
-public class ShaderUniform {
-
-    private final String name;
-
-    public ShaderUniform(String name) {
-        this.name = name;
+    ShaderUniform(String uniformName) {
+        this.uniformName = uniformName;
     }
 
-    public int bind(ShaderProgram shaderProgram) {
-        int handle = GLES20.glGetUniformLocation(shaderProgram.handle(), "uMVPMatrix");
-
-        return handle;
+    String getUniformName() {
+        return uniformName;
     }
 
-    public void unbind(ShaderProgram shaderProgram) {
-
-    }
 }

@@ -12,7 +12,6 @@ import net.wohlfart.pluto.shader.ShaderUniform;
 
 public class Cam implements SceneGraphNode {
 
-    private ShaderUniform shaderUniform = new ShaderUniform("uMVPMatrix");
 
     @Override
     public void render(SceneGraphContext context) {
@@ -21,7 +20,6 @@ public class Cam implements SceneGraphNode {
 
         ShaderProgram shaderProgram = context.getShader();
 
-        int handle = shaderUniform.bind(shaderProgram);
 
 
         // clear Screen and Depth Buffer, we have set the clear color as black.

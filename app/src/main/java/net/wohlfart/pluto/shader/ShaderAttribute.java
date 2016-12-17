@@ -1,26 +1,20 @@
 package net.wohlfart.pluto.shader;
 
 
-import android.opengl.GLES20;
+public enum ShaderAttribute {
+    POSITION_ATTRIBUTE(ShaderProgram.POSITION_ATTRIBUTE),
+    TEXCOORD_ATTRIBUTE(ShaderProgram.TEXCOORD_ATTRIBUTE),
+    NORMAL_ATTRIBUTE(ShaderProgram.NORMAL_ATTRIBUTE),
+    COLOR_ATTRIBUTE(ShaderProgram.COLOR_ATTRIBUTE);
 
-public class ShaderAttribute {
+    private final String attributeName;
 
-    private final String name;
-
-    public ShaderAttribute(String name) {
-        this.name = name;
+    ShaderAttribute(String attributeName) {
+        this.attributeName = attributeName;
     }
 
-    public int bind(ShaderProgram shaderProgram) {
-        // get handle to vertex shader's vPosition member
-        int handle = GLES20.glGetAttribLocation(shaderProgram.handle(), "vPosition");
-        // Enable generic vertex attribute array
-        GLES20.glEnableVertexAttribArray(handle);
-        return handle;
+    String getAttributeName() {
+        return attributeName;
     }
 
-    public void unbind(int handle) {
-        // Disable vertex array
-        GLES20.glDisableVertexAttribArray(handle);
-    }
 }
