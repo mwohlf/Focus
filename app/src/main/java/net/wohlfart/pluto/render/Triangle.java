@@ -45,7 +45,6 @@ public class Triangle implements IRenderable {
 
 
     public Triangle() {
-        setupTriangle();
     }
 
     public void setShaderProgram(ShaderProgram shaderProgram) {
@@ -64,6 +63,11 @@ public class Triangle implements IRenderable {
 
     @Override
     public void render() {
+
+        if (mesh == null) {
+            setupTriangle();
+        }
+
         shaderProgram.use();
         GLES20.glViewport(0, 0, width, height);
 
@@ -83,58 +87,19 @@ public class Triangle implements IRenderable {
         Matrix.setIdentityM(modelMatrix, 0);
         shaderProgram.setMatrix(ShaderUniform.MODEL_MATRIX, modelMatrix);
 
-
-        // get handle to vertex shader's vPosition member
-        int mPositionHandle = GLES20.glGetAttribLocation(shaderProgram.handle(), ShaderProgram.POSITION_ATTRIBUTE);
-        // Enable generic vertex attribute array
-        GLES20.glEnableVertexAttribArray(mPositionHandle);
-        // Prepare the triangle coordinate data
-        GLES20.glVertexAttribPointer(mPositionHandle, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
-
-        // Draw the triangle
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, indices.length, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
-
-
-        // Disable vertex array
-        GLES20.glDisableVertexAttribArray(mPositionHandle);
+        mesh.render();
 
     }
 
     private void setupTriangle() {
-
         mesh = new MeshBuilder()
+                .shaderProgram(shaderProgram)
                 .add(10.0f, 400f, 0.0f)
                 .add(10.0f, 100f, 0.0f)
                 .add(400f, 400f, 0.0f)
                 .triangles()
                 .triangle(0, 1, 2)
                 .build();
-
-
-
-        // We have to create the vertices of our triangle.
-        vertices = new float[]
-                {
-                        10.0f, 400f, 0.0f,
-                        10.0f, 100f, 0.0f,
-                        400f, 400f, 0.0f,
-                };
-
-        indices = new short[] {0, 1, 2}; // The order of vertexrendering.
-
-        // The vertex buffer.
-        ByteBuffer bb = ByteBuffer.allocateDirect(vertices.length * 4);
-        bb.order(ByteOrder.nativeOrder());
-        vertexBuffer = bb.asFloatBuffer();
-        vertexBuffer.put(vertices);
-        vertexBuffer.position(0);
-
-        // initialize byte buffer for the draw list
-        ByteBuffer dlb = ByteBuffer.allocateDirect(indices.length * 2);
-        dlb.order(ByteOrder.nativeOrder());
-        drawListBuffer = dlb.asShortBuffer();
-        drawListBuffer.put(indices);
-        drawListBuffer.position(0);
     }
 
 }

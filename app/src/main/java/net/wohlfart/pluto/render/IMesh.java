@@ -1,7 +1,12 @@
 package net.wohlfart.pluto.render;
 
-/**
- * Created by michael on 16.12.16.
- */
+
+import net.wohlfart.pluto.shader.ShaderProgram;
+
 public interface IMesh {
+
+    void bind(ShaderProgram shader);
+
+    void render();
+
 }

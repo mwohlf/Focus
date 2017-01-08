@@ -2,30 +2,42 @@ package net.wohlfart.pluto.shader;
 
 import android.opengl.GLES20;
 
+import java.util.Arrays;
+
 public class ShaderProgram {
 
-    public static final String POSITION_ATTRIBUTE = "Position";
-    public static final String TEXCOORD_ATTRIBUTE = "TexCoord";
-    public static final String NORMAL_ATTRIBUTE = "Normal";
-    public static final String COLOR_ATTRIBUTE = "Color";
+    private static final int INVALID_HANDLE = -1;
 
-    public static final String MODEL_VIEW_PROJECTION_MATRIX = "MVPMatrix";
-    public static final String MODEL_MATRIX = "ModelMatrix";
-    public static final String VIEW_MATRIX = "ViewMatrix";
-    public static final String PROJECTION_MATRIX = "ProjectionMatrix";
+    static final String POSITION_ATTRIBUTE = "Position";
+    static final String TEXCOORD_ATTRIBUTE = "TexCoord";
+    static final String NORMAL_ATTRIBUTE = "Normal";
+    static final String COLOR_ATTRIBUTE = "Color";
+
+    static final String MODEL_VIEW_PROJECTION_MATRIX = "MVPMatrix";
+    static final String MODEL_MATRIX = "ModelMatrix";
+    static final String VIEW_MATRIX = "ViewMatrix";
+    static final String PROJECTION_MATRIX = "ProjectionMatrix";
 
     private final String name;
 
     private final int shaderHandle;
 
-    int[] uniformHandles = new int[ShaderUniform.values().length];
-    int[] attributeHandles = new int[ShaderAttribute.values().length];
+
+    // handles for the uniforms of this shader
+    private final int[] uniformHandles;
+
+    // handles for the attributes of this shader
+    private final int[] attributeHandles;
 
 
     /* package private, use loader */
     ShaderProgram(int shaderHandle, String name) {
         this.shaderHandle = shaderHandle;
         this.name = name;
+        this.uniformHandles = new int[ShaderUniform.values().length];
+        this.attributeHandles = new int[ShaderAttribute.values().length];
+        Arrays.fill(uniformHandles, INVALID_HANDLE);
+        Arrays.fill(attributeHandles, INVALID_HANDLE);
     }
 
     public void use() {
@@ -36,16 +48,17 @@ public class ShaderProgram {
         uniformHandles[shaderUniform.ordinal()] = GLES20.glGetUniformLocation(shaderHandle, shaderUniform.getUniformName());
     }
 
-    public void attach(ShaderAttribute shaderAttribute) {
-        attributeHandles[shaderAttribute.ordinal()] = GLES20.glGetAttribLocation(shaderHandle, shaderAttribute.getAttributeName());
-    }
-
     public void setMatrix(ShaderUniform modelMatrix, float[] matrix) {
         GLES20.glUniformMatrix4fv(uniformHandles[modelMatrix.ordinal()], 1, false, matrix, 0);
     }
 
-    @Deprecated
-    public int handle() {
-        return shaderHandle;
+
+    public int lookup(ShaderAttribute shaderAttribute) {
+        int handle = attributeHandles[shaderAttribute.ordinal()];
+        if (handle == INVALID_HANDLE) {
+            handle = attributeHandles[shaderAttribute.ordinal()] = GLES20.glGetAttribLocation(shaderHandle, shaderAttribute.getAttributeName());
+        }
+        return handle;
     }
+
 }
